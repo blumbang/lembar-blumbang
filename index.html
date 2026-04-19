@@ -376,14 +376,20 @@ async function loadProduk(slug){
       if(!m) continue;
       const rows = JSON.parse(m[1]).table.rows || [];
 
-      // Parse: kolom A = field, kolom C = nilai
+      // Parse: kolom A = field, ambil nilai dari kolom terakhir yang tidak kosong
       const data = {};
       rows.forEach(function(r){
         const field = r.c[0] && r.c[0].v;
-        const val = r.c[2] && r.c[2].v;
-        if(field && !field.startsWith('—') && !field.startsWith('LEMBAR') && !field.startsWith('FIELD')){
-          data[field.trim()] = val ? String(val).trim() : '';
+        if(!field || field.startsWith('—') || field.startsWith('LEMBAR') || field.startsWith('FIELD')) return;
+        // Ambil nilai dari kolom terakhir yang ada isinya
+        let val = '';
+        for(let i = r.c.length - 1; i >= 1; i--){
+          if(r.c[i] && r.c[i].v !== null && r.c[i].v !== undefined && String(r.c[i].v).trim() !== ''){
+            val = String(r.c[i].v).trim();
+            break;
+          }
         }
+        data[field.trim()] = val;
       });
 
       // Cek slug cocok
